@@ -287,8 +287,13 @@ The program automatically displays:
 - Top 5 R2 results
 
 # Observations / Result
-
+<img width="1400" height="410" alt="Screenshot 2026-05-16 at 13 39 52" src="https://github.com/user-attachments/assets/271a4d34-0dfb-4816-885d-bd1ef812b1e6" />
 You can also find the output in output.txt in this repository.
+
+The best combination varied depending on the evaluation metric. However, the top-performing models achieved very similar results overall.
+
+If I had to select a single overall best combination, I would choose:
+- `onehot + robust + Logistic + multiple_linear`
 
 We expected that our manually created pipeline would outperform the others. However, this was not true.
 
