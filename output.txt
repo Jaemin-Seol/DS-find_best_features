@@ -1,0 +1,29 @@
+====================================================
+TOP 5 based on rmse_mean
+======================================================
+encoding_method scaling_method classification_method                    classification_params regression_method regression_params  classification_accuracy_mean  rmse_mean   mae_mean  r2_mean
+         onehot         robust              Logistic                                {'C': 10}   multiple_linear                {}                      0.880734 397.141211 253.806655 0.802424
+         onehot       standard              Logistic                                {'C': 10}   multiple_linear                {}                      0.880263 397.379554 254.094642 0.802162
+         onehot         robust              decision {'max_depth': 10, 'min_samples_leaf': 5}   multiple_linear                {}                      0.863931 397.540804 256.025074 0.802899
+         onehot       standard              decision {'max_depth': 10, 'min_samples_leaf': 5}   multiple_linear                {}                      0.863931 397.540804 256.025074 0.802899
+         onehot         minmax              decision {'max_depth': 10, 'min_samples_leaf': 5}   multiple_linear                {}                      0.863931 397.540804 256.025074 0.802899
+
+====================================================
+TOP 5 based on mae_mean
+======================================================
+encoding_method scaling_method classification_method classification_params regression_method regression_params  classification_accuracy_mean  rmse_mean   mae_mean  r2_mean
+         onehot         robust                   KNN    {'n_neighbors': 7}   multiple_linear                {}                      0.865322 402.179552 253.426993 0.797801
+         onehot         minmax                   KNN    {'n_neighbors': 3}   multiple_linear                {}                      0.862024 401.398395 253.596653 0.798258
+         onehot         robust              Logistic             {'C': 10}   multiple_linear                {}                      0.880734 397.141211 253.806655 0.802424
+         onehot         minmax                   KNN   {'n_neighbors': 11}   multiple_linear                {}                      0.862522 402.216148 253.811536 0.797995
+         onehot       standard                   KNN    {'n_neighbors': 3}   multiple_linear                {}                      0.862057 406.969009 253.876293 0.793355
+
+====================================================
+TOP 5 based on r2_mean
+======================================================
+encoding_method scaling_method classification_method                    classification_params regression_method regression_params  classification_accuracy_mean  rmse_mean   mae_mean  r2_mean
+         onehot         robust              decision {'max_depth': 10, 'min_samples_leaf': 5}   multiple_linear                {}                      0.863931 397.540804 256.025074 0.802899
+         onehot       standard              decision {'max_depth': 10, 'min_samples_leaf': 5}   multiple_linear                {}                      0.863931 397.540804 256.025074 0.802899
+         onehot         minmax              decision {'max_depth': 10, 'min_samples_leaf': 5}   multiple_linear                {}                      0.863931 397.540804 256.025074 0.802899
+         onehot         robust              Logistic                                {'C': 10}   multiple_linear                {}                      0.880734 397.141211 253.806655 0.802424
+         onehot       standard              Logistic                                {'C': 10}   multiple_linear                {}                      0.880263 397.379554 254.094642 0.802162
