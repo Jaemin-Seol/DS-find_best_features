@@ -61,6 +61,61 @@ Main functions:
 | `cross_val_custom()` | Custom K-Fold cross validation       |
 | `show_top5()`        | Displays top 5 results               |
 
+- fixed_preprocess() : Data cleaning and preprocessing 
+  - data: input data
+  - is_train: whether the input is train or not
+  - train_stats: dictionary used to store preprocessing status values
+  - return: preprocessed data
+  
+- encode(): Feature encoding experiments
+  - df: input dataframe
+  - is_train: whether the input is train or not
+  - train_stats: dictionary used to store preprocessing status values
+  - encoding_method: encoding method to use
+  - return: encoded data
+  
+- scale(): Feature scaling experiments
+  - train_pre: train set to scale
+  - test_pre: test set to scale
+  - scaling_method: scaling method to use
+  - return: scaled data
+
+- regression(): Regression model testing
+  - X_train: training X
+  - y_train_class: training class y
+  - y_train_price: training price y
+  - X_test: testing X
+  - y_test_class: testing class y
+  - y_test_price: testing price y
+  - test_pred: prediction result of testset
+  - regression_method: regression method to use
+  - return: result dictionary includes various scores
+ 
+- model(): Classification + regression pipeline
+  - X_train: training X
+  - y_train_class: training class y
+  - Y_train_price: training price y
+  - X_test: testing X
+  - y_test_class: testing class y
+  - y_test_price: testing price y
+  - classification_method: classification method to use
+  - regression_method: regression method to use
+  - return: result dictionary includes various scores
+ 
+- test_combination(): test all combinations
+  - train_df: training dataset
+  - test_df: testing dataset
+  - return: result dataframe
+ 
+- cross_val_custom(): Custom K-Fold cross validation
+  - df: Original dataset
+  - n_splits: number of folds
+  - return: cv_result dataframe
+ 
+- show_top5(): Displays top 5 results
+  - cv_result: cross validation result dataframe
+  - return: no return. use terminal
+
 Most of the functions are self-explanatory. However, model() may require additional explanation.
 The original name of the function was classification(). However, since our approach combined classification and regression, there was a need for a function that could call regression internally.
 
