@@ -94,7 +94,7 @@ Main functions:
 - model(): Classification + regression pipeline
   - X_train: training X
   - y_train_class: training class y
-  - Y_train_price: training price y
+  - y_train_price: training price y
   - X_test: testing X
   - y_test_class: testing class y
   - y_test_price: testing price y
