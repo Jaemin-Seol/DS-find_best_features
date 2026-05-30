@@ -63,14 +63,14 @@ Main functions:
 
 - fixed_preprocess() : Data cleaning and preprocessing 
   - data: input data
-  - is_train: whether the input is train or not
-  - train_stats: dictionary used to store preprocessing status values
+  - is_train: whether the input is training data
+  - train_stats: dictionary used to store statistics and fitted objects
   - return: preprocessed data
   
 - encode(): Feature encoding experiments
   - df: input dataframe
-  - is_train: whether the input is train or not
-  - train_stats: dictionary used to store preprocessing status values
+  - is_train: whether the input is training data
+  - train_stats: dictionary used to store statistics and fitted objects
   - encoding_method: encoding method to use
   - return: encoded data
   
