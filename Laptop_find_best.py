@@ -1,3 +1,4 @@
+# Data science 2026-1 Team 1 term project - open source contribution / find best model
 import warnings
 import numpy as np
 import pandas as pd
@@ -16,6 +17,7 @@ warnings.filterwarnings("ignore")
 
 RANDOM_STATE = 42 # Global random state
 
+# Fixed preprocessing function
 def fixed_preprocess(data, is_train=True, train_stats=None):
     df = data.copy()
 
@@ -70,7 +72,7 @@ def fixed_preprocess(data, is_train=True, train_stats=None):
     df['Touch'] = df['Touch'].map({'Yes': 1, 'No': 0}) # Convert Yes/No to 1/0
 
     df = df[df['Storage'] > 0] # Remove impossible storage
-    df['Storage'] = np.log1p(df['Storage'])
+    df['Storage'] = np.log1p(df['Storage']) #log transformation
 
     # Remove unusual (mostly wrong) RAM
     valid_ram = [4, 8, 16, 24, 32, 64, 128]
@@ -87,6 +89,7 @@ def fixed_preprocess(data, is_train=True, train_stats=None):
 # Function to test variouse encoder
 def encode(df, is_train=True, train_stats=None, encoding_method='default'):
     df = df.copy()
+    
     # CPU/GPU Score mapping table (based on passmark)
     cpu_scores = {
         'Intel Core i9': 30000, 'Intel Evo Core i9': 30000,
@@ -101,7 +104,6 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
         'Qualcomm Snapdragon 8': 5000, 'Qualcomm Snapdragon 7': 3500,
         'Microsoft SQ1': 3000, 'Mediatek MT8183': 1500
     }
-
     gpu_scores = {
         'RTX 4090': 27000, 'RTX 4080': 24000, 'RTX 3080': 16000,
         'RTX 4070': 19000, 'RTX 3070': 15000, 'RTX 4060': 17000,
@@ -114,7 +116,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
         'Intel UHD Graphics': 1500, 'Intel UHD Graphics 600': 300
     }
 
-    # encoding method based on domain knowledge (our choice)
+    # encoding method based on domain knowledge (manual encoding method)
     if encoding_method == 'default':
         df['CPU_Score'] = df['CPU'].map(cpu_scores).fillna(2000)
         df['GPU_Score'] = df['GPU'].map(gpu_scores).fillna(1500)
@@ -160,6 +162,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
             X_brands = df[brand_cols]
             y = df[target_col]
 
+            # f_regression to get score
             f_scores, _ = f_regression(X_brands, y)
             importance_series = pd.Series(f_scores, index=brand_cols)
             frequencies = X_brands.sum()
@@ -167,6 +170,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
             FREQ_THRESHOLD = 20 # around 1 % of total
             IMPORTANCE_THRESHOLD = 15
 
+            # Find brands to merge
             brands_to_group = []
             for brand in brand_cols:
                 if frequencies[brand] < FREQ_THRESHOLD \
@@ -178,6 +182,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
             print(f"list of brand 'others' Total:({len(brands_to_group)})")
             print(brands_to_group)
 
+        # merge brands to brand_others
         target_groups = train_stats.get('brands_to_group', [])
         if target_groups:
             existing_groups \
@@ -203,6 +208,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
             encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
             encoded_result = encoder.fit_transform(df[columns])
             train_stats['onehot_encoder'] = encoder
+        #reuse encoder when encoding testing set
         else:
             encoder = train_stats['onehot_encoder']
             encoded_result = encoder.transform(df[columns])
@@ -235,7 +241,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
             )
             df[columns] = encoder.fit_transform(df[columns])
             train_stats['ordinal_encoder'] = encoder
-
+        #reuse encoder when encoding testing set
         else:
             encoder = train_stats['ordinal_encoder']
             df[columns] = encoder.transform(df[columns])
@@ -245,6 +251,7 @@ def encode(df, is_train=True, train_stats=None, encoding_method='default'):
 
 # Function to test various scaler
 def scale(train_pre, test_pre, scaling_method='default'):
+    # columns to scale
     num_cols = [
         col for col in ['RAM', 'Storage', 'Screen', 'CPU_Score', 'GPU_Score']
         if col in train_pre.columns
@@ -270,7 +277,7 @@ def scale(train_pre, test_pre, scaling_method='default'):
 def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_test_price, test_pred, regression_method):
     results = []
 
-    # Use real class to train
+    # Use real(actual) class to train
     X_train_low = X_train[y_train_class == 0]
     y_train_price_low = y_train_price[y_train_class == 0]
 
@@ -282,18 +289,20 @@ def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_t
 
     y_test_price_exp = np.expm1(y_test_price)
 
+    # Multiple linear regression method
     if regression_method == 'multiple':
         lr_low = LinearRegression()
         lr_high = LinearRegression()
 
         lr_low.fit(X_train_low, y_train_price_low)
         lr_high.fit(X_train_high, y_train_price_high)
-
+        
         final_pred = pd.Series(index=X_test.index, dtype=float)
 
         pred_low = lr_low.predict(X_test_low)
         pred_high = lr_high.predict(X_test_high)
 
+        # Calculate scores
         final_pred.loc[X_test_low.index] = np.expm1(pred_low)
         final_pred.loc[X_test_high.index] = np.expm1(pred_high)
 
@@ -301,6 +310,7 @@ def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_t
         mae = mean_absolute_error(y_test_price_exp, final_pred)
         r2 = r2_score(y_test_price_exp, final_pred)
 
+        # store result
         results.append({
             'regression_method': 'multiple_linear',
             'regression_params': {},
@@ -310,9 +320,11 @@ def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_t
         })
 
     elif regression_method == 'polynomial':
+        # more than degree 3 is hard to compute & impractical
         degrees = [2, 3]
 
         for degree in degrees:
+                # make polynomial features
                 poly_low_transformer = PolynomialFeatures(degree=degree, include_bias=False)
                 poly_high_transformer = PolynomialFeatures(degree=degree, include_bias=False)
 
@@ -321,7 +333,7 @@ def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_t
                 X_test_low_poly = poly_low_transformer.transform(X_test_low)
                 X_test_high_poly = poly_high_transformer.transform(X_test_high)
 
-                # Polynomial is basically linear regression with polynomial features
+                # Polynomial regression is basically linear regression with polynomial features
                 poly_low = LinearRegression()
                 poly_high = LinearRegression()
 
@@ -333,6 +345,7 @@ def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_t
                 pred_low = poly_low.predict(X_test_low_poly)
                 pred_high = poly_high.predict(X_test_high_poly)
 
+                # Calculate scores
                 final_pred.loc[X_test_low.index] = np.expm1(pred_low)
                 final_pred.loc[X_test_high.index] = np.expm1(pred_high)
 
@@ -340,6 +353,7 @@ def regression (X_train, y_train_class, y_train_price, X_test, y_test_class, y_t
                 mae = mean_absolute_error(y_test_price_exp, final_pred)
                 r2 = r2_score(y_test_price_exp, final_pred)
 
+                 # store result
                 results.append({
                     'regression_method': 'polynomial',
                     'regression_params': {
@@ -357,6 +371,7 @@ def model (X_train, y_train_class, y_train_price, X_test, y_test_class, y_test_p
     results = []
 
     if classification_method == 'decision':
+        # Prameters to test
         max_depths = [5, 10, 15, 20]
         min_leafs = [5, 10, 15, 20]
         for depth in max_depths:
@@ -374,7 +389,8 @@ def model (X_train, y_train_class, y_train_price, X_test, y_test_class, y_test_p
                 reg_results = regression(X_train, y_train_class, y_train_price, 
                                          X_test, y_test_class, y_test_price, 
                                          test_pred, regression_method)
-                
+
+                # Store final results
                 for reg_result in reg_results:
                     results.append({
                         'classification_method': 'decision',
@@ -390,20 +406,21 @@ def model (X_train, y_train_class, y_train_price, X_test, y_test_class, y_test_p
                         'r2': reg_result['r2']
                     })
     elif classification_method == 'logistic':
+        # Prameters to test
         cs = [0.01, 0.1, 1, 10]
         for c in cs:
-            # max_iter to allow model to learn enough
+            # high max_iter to allow model to learn enough
             logistic = LogisticRegression(C=c, max_iter=1000)
 
             logistic.fit(X_train, y_train_class)
             test_pred = logistic.predict(X_test)
             acc = accuracy_score(y_test_class, test_pred)
 
-            # Calling regression - Same structure
+            # Calling regression
             reg_results = regression(X_train, y_train_class, y_train_price, 
                                          X_test, y_test_class, y_test_price, 
                                          test_pred, regression_method)
-            
+            # Store final results
             for reg_result in reg_results:
                     results.append({
                         'classification_method': 'Logistic',
@@ -419,6 +436,7 @@ def model (X_train, y_train_class, y_train_price, X_test, y_test_class, y_test_p
                     })
 
     elif classification_method == 'knn':
+        # Prameters to test
         ks = [3, 5, 7, 9, 11]
 
         for k in ks:
@@ -428,11 +446,11 @@ def model (X_train, y_train_class, y_train_price, X_test, y_test_class, y_test_p
             test_pred = knn.predict(X_test)
             acc = accuracy_score(y_test_class, test_pred)
 
-            # Calling regression - Same structure
+            # Calling regression
             reg_results = regression(X_train, y_train_class, y_train_price, 
                                          X_test, y_test_class, y_test_price, 
                                          test_pred, regression_method)
-            
+            # Store final results
             for reg_result in reg_results:
                     results.append({
                         'classification_method': 'KNN',
@@ -470,6 +488,7 @@ def test_combination(train_df, test_df):
     for encoding_method in encoding_methods:
         for scaling_method in scaling_methods:
             train_stats = train_stats_orig.copy()
+            # encode and scale
             train_encoded = encode(
                 train_pre,
                 is_train=True,
@@ -495,11 +514,14 @@ def test_combination(train_df, test_df):
             y_test_price = test_scaled['Final Price']
             y_test_class = test_scaled['Price Class']
 
+            # classification and regression
             for classification_method in classification_methods:
                 for regression_method in regression_methods:
+                    # Skip compute heavy, impractical combination
                     if encoding_method == 'onehot' and regression_method == 'polynomial':
                         print("Skipping...Onehot + poly is too heavy.")
                         continue    
+                    # Show current combination
                     print("====================================")
                     print(f"Encoding: {encoding_method}")
                     print(f"Scaling: {scaling_method}")
@@ -517,6 +539,7 @@ def test_combination(train_df, test_df):
                         regression_method=regression_method
                     )
 
+                    # store result
                     for result in model_results:
                         result['encoding_method'] = encoding_method
                         result['scaling_method'] = scaling_method
@@ -600,6 +623,7 @@ def show_top5(cv_result):
         print(f"TOP 5 based on {metric}")
         print("======================================================")
 
+        # sort and head 5
         top5 = (cv_result.sort_values(by=metric, ascending=asc).head(5))
 
         cols = [
